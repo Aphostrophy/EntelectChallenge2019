@@ -11,4 +11,7 @@ public class Opponent {
 
     @SerializedName("worms")
     public Worm[] worms;
+
+    @SerializedName("currentWormId")
+    public int currentWormId;
 }
