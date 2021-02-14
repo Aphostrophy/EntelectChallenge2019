@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/reference-bot/javascript/rounds" />
+      <excludeFolder url="file://$MODULE_DIR$/starter-bots/javascript/rounds" />
+      <excludeFolder url="file://$MODULE_DIR$/starter-bots/scala/src" />
+      <excludeFolder url="file://$MODULE_DIR$/entelect-visualiser_Data" />
+      <excludeFolder url="file://$MODULE_DIR$/Matches" />
+      <excludeFolder url="file://$MODULE_DIR$/MonoBleedingEdge" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
