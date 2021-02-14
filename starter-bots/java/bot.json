@@ -3,6 +3,6 @@
 	"email": "Aphostrophy@gmail.com",
 	"nickName": "JDK",
 	"botLocation": "./target",
-	"botFileName": "starter-pack-1.0-SNAPSHOT.jar",
+	"botFileName": "java-sample-bot-jar-with-dependencies.jar",
 	"botLanguage": "java"
 }
