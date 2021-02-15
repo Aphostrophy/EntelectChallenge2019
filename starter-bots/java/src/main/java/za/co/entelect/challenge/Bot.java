@@ -29,27 +29,44 @@ public class Bot {
                 .get();
     }
 
+//    private int getOpponentWorm(GameState gameState) {
+//        return Arrays.stream(gameState.myPlayer.worms)
+//                .filter(myWorm -> myWorm.id == gameState.currentWormId)
+//                .findFirst()
+//                .get();
+//    }
+
     public Command run() {
 
         Worm enemyWorm = getFirstWormInRange();
+        Utilities utilities = new Utilities();
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-            return new ShootCommand(direction);
+            System.out.println(enemyWorm.id);
+            System.out.println(opponent.currentWormId);
+            if(enemyWorm.id == opponent.currentWormId){
+                return EscapeShootStrategy();
+            } else{
+                return new ShootCommand(direction);
+            }
         }
 
         List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-        Cell block = getNearestPath(surroundingBlocks, 16, 16);
-        System.out.printf("%d %d\n", block.x, block.y);
+        int cellIdx = utilities.getDirtID(surroundingBlocks);
 
-//        int cellIdx = random.nextInt(surroundingBlocks.size());
-//
-//        Cell block = surroundingBlocks.get(cellIdx);
-        if (block.type == CellType.AIR) {
-            return new MoveCommand(block.x, block.y);
-        } else if (block.type == CellType.DIRT) {
-            return new DigCommand(block.x, block.y);
+        if(cellIdx == -1){
+            return EscapeLavaStrategy(surroundingBlocks);
+        } else{
+            Cell block = surroundingBlocks.get(cellIdx);
+            if (block.type == CellType.AIR) {
+                return new MoveCommand(block.x, block.y);
+            } else if (block.type == CellType.DIRT) {
+                return new DigCommand(block.x, block.y);
+            } else if (block.type==CellType.LAVA) {
+                return EscapeLavaStrategy(surroundingBlocks);
+            }
         }
-//
+
         return new DoNothingCommand();
     }
 
@@ -62,9 +79,11 @@ public class Bot {
                 .collect(Collectors.toSet());
 
         for (Worm enemyWorm : opponent.worms) {
-            String enemyPosition = String.format("%d_%d", enemyWorm.position.x, enemyWorm.position.y);
-            if (cells.contains(enemyPosition)) {
-                return enemyWorm;
+            if(enemyWorm.health>0){
+                String enemyPosition = String.format("%d_%d", enemyWorm.position.x, enemyWorm.position.y);
+                if (cells.contains(enemyPosition)) {
+                    return enemyWorm;
+                }
             }
         }
 
@@ -106,7 +125,7 @@ public class Bot {
         for (int i = x - 1; i <= x + 1; i++) {
             for (int j = y - 1; j <= y + 1; j++) {
                 // Don't include the current position
-                if (i != x && j != y && isValidCoordinate(i, j)) {
+                if ((i != x || j != y) && isValidCoordinate(i, j) && gameState.map[j][i].type!=CellType.DEEP_SPACE) {
                     cells.add(gameState.map[j][i]);
                 }
             }
@@ -173,4 +192,21 @@ public class Bot {
 
         return Direction.valueOf(builder.toString());
     }
+
+    private Command EscapeLavaStrategy(List<Cell> surroundingBlocks){
+        int x = currentWorm.position.x;
+        int y = currentWorm.position.y;
+        int moveX = x<33/2 ? ++x : --x;
+        int moveY = y<33/2 ? ++y : --y;
+        return new MoveCommand(moveX,moveY);
+    }
+
+    private Command EscapeShootStrategy(){
+        int x = currentWorm.position.x;
+        int y = currentWorm.position.y;
+        int moveX = x<33/2 ? ++x : --x;
+        int moveY = y<33/2 ? ++y : --y;
+        return new MoveCommand(moveX,moveY);
+    }
+
 }
