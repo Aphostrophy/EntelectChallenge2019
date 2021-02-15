@@ -42,12 +42,14 @@ public class Bot {
 
         Worm enemyWorm = getFirstWormInRange();
         Utilities utilities = new Utilities();
+
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-            if(enemyWorm.id == opponent.currentWormId){
-                return EscapeShootStrategy();
+
+            if(enemyWorm.id == opponent.currentWormId && enemyWorm.roundsUntilUnfrozen==0){
+                return EscapeShootStrategy(enemyWorm);
             } else{
-                return ShootStrategy(enemyWorm);
+                return AttackStrategy(enemyWorm);
             }
         }
 
@@ -201,17 +203,53 @@ public class Bot {
         return new MoveCommand(moveX,moveY);
     }
 
-    private Command EscapeShootStrategy(){
+    private Command EscapeShootStrategy(Worm enemyWorm){
         int x = currentWorm.position.x;
         int y = currentWorm.position.y;
-        int moveX = x<33/2 ? ++x : --x;
-        int moveY = y<33/2 ? ++y : --y;
+        int moveX = x;
+        int moveY = y;
+        boolean conflict = false;
+
+        if(currentWorm.position.x==enemyWorm.position.x){
+            moveX = x<33/2 ? ++x : --x;
+            for (Worm cacingMusuh : opponent.worms) {
+                if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY) {
+                    conflict=true;
+                }
+            }
+            if(conflict){
+                return AttackStrategy(enemyWorm);
+            }
+
+        } else if(currentWorm.position.y==enemyWorm.position.y){
+            moveY = y<33/2 ? ++y : --y;
+            for (Worm cacingMusuh : opponent.worms) {
+                if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY) {
+                    conflict=true;
+                }
+            }
+            if(conflict){
+                return AttackStrategy(enemyWorm);
+            }
+        } else { // currentWorm.position.x != enemyWorm.position.x && currentWorm.position.y != enemyWorm.position.y
+            moveX = x<33/2 ? ++x : --x;
+            moveY = y<33/2 ? ++y : --y;
+            for (Worm cacingMusuh : opponent.worms) {
+                if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY) {
+                    conflict=true;
+                }
+            }
+            if(conflict){
+                return AttackStrategy(enemyWorm);
+            }
+        }
+
         return new MoveCommand(moveX,moveY);
     }
 
-    private Command ShootStrategy(Worm enemyWorm) {
-        Utilities utilities = new Utilities();
-
+    private Command AttackStrategy(Worm enemyWorm) {
+            Utilities utilities = new Utilities();
+        }
         // First check can use bomb or not
         Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
         if(currentWorm.id == 2) {
@@ -219,7 +257,7 @@ public class Bot {
                 return new BombCommand(enemyWorm.position.x, enemyWorm.position.y);
             }
         }else if(currentWorm.id == 3) {
-            if(currentWorm.snowballs.count > 0) {
+            if(currentWorm.snowballs.count > 0 && enemyWorm.roundsUntilUnfrozen==0) {
                 return new SnowballCommand(enemyWorm.position.x, enemyWorm.position.y);
             }
         }
