@@ -6,7 +6,7 @@ import za.co.entelect.challenge.enums.CellType;
 import za.co.entelect.challenge.enums.Direction;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.*;
 
 public class Bot {
 
@@ -38,15 +38,18 @@ public class Bot {
         }
 
         List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-        int cellIdx = random.nextInt(surroundingBlocks.size());
+        Cell block = getNearestPath(surroundingBlocks, 16, 16);
+        System.out.printf("%d %d\n", block.x, block.y);
 
-        Cell block = surroundingBlocks.get(cellIdx);
+//        int cellIdx = random.nextInt(surroundingBlocks.size());
+//
+//        Cell block = surroundingBlocks.get(cellIdx);
         if (block.type == CellType.AIR) {
             return new MoveCommand(block.x, block.y);
         } else if (block.type == CellType.DIRT) {
             return new DigCommand(block.x, block.y);
         }
-
+//
         return new DoNothingCommand();
     }
 
@@ -110,6 +113,35 @@ public class Bot {
         }
 
         return cells;
+    }
+
+    private Cell getNearestPath(List<Cell> surroundingBlocks, int destX, int destY) {
+        List<Test> newList = new ArrayList<Test>();
+        for(int i = 0; i < surroundingBlocks.size(); i++) {
+            Test foo = new Test(surroundingBlocks.get(i), euclideanDistance(surroundingBlocks.get(i).x,surroundingBlocks.get(i).y, destX, destY));
+            newList.add(foo);
+        }
+        List<Test> sortedList = newList.stream()
+                .sorted(Comparator.comparing(Test::getDistance))
+                .collect(Collectors.toList());
+        for(int i = 0; i < sortedList.size(); i++) {
+            System.out.printf("%d %d %d\n", sortedList.get(i).cell.x, sortedList.get(i).cell.y, sortedList.get(i).distance);
+        }
+        return sortedList.get(0).cell;
+    }
+
+    private class Test {
+        Cell cell;
+        int distance;
+
+        public int getDistance() {
+            return distance;
+        }
+
+        Test(Cell cell, int distance){
+            this.cell = cell;
+            this.distance = distance;
+        }
     }
 
     private int euclideanDistance(int aX, int aY, int bX, int bY) {
