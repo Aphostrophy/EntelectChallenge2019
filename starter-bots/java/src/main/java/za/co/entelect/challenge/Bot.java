@@ -67,7 +67,7 @@ public class Bot {
         } else if (chosenBlock.type == CellType.DIRT) {
             return new DigCommand(chosenBlock.x, chosenBlock.y);
         } else if (chosenBlock.type==CellType.LAVA) {
-            return EscapeLavaStrategy(surroundingBlocks);
+            return EscapeLavaStrategy();
         }
 //        }
 //
@@ -250,7 +250,7 @@ public class Bot {
         return Direction.valueOf(builder.toString());
     }
 
-    private Command EscapeLavaStrategy(List<Cell> surroundingBlocks){
+    private Command EscapeLavaStrategy(){
         int x = currentWorm.position.x;
         int y = currentWorm.position.y;
         int moveX = x<33/2 ? ++x : --x;
@@ -272,6 +272,9 @@ public class Bot {
                     conflict=true;
                 }
             }
+            if(gameState.map[y][x].type == CellType.DEEP_SPACE || gameState.map[y][x].type == CellType.DIRT){
+                conflict = true;
+            }
             if(conflict){
                 return AttackStrategy(enemyWorm);
             }
@@ -282,6 +285,9 @@ public class Bot {
                 if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY) {
                     conflict=true;
                 }
+            }
+            if(gameState.map[y][x].type == CellType.DEEP_SPACE || gameState.map[y][x].type == CellType.DIRT){
+                conflict = true;
             }
             if(conflict){
                 return AttackStrategy(enemyWorm);
@@ -294,6 +300,9 @@ public class Bot {
                     conflict=true;
                 }
             }
+            if(gameState.map[y][x].type == CellType.DEEP_SPACE || gameState.map[y][x].type == CellType.DIRT){
+                conflict = true;
+            }
             if(conflict){
                 return AttackStrategy(enemyWorm);
             }
@@ -303,7 +312,6 @@ public class Bot {
     }
 
     private Command AttackStrategy(Worm enemyWorm) {
-        Utilities utilities = new Utilities();
         // First check can use bomb or not
         Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
         if (currentWorm.id == 2) {
@@ -315,6 +323,11 @@ public class Bot {
                 return SnowballStrategy(enemyWorm, direction);
             }
         }
+        return ShootStrategy(direction,enemyWorm);
+    }
+
+    private Command ShootStrategy(Direction direction,Worm enemyWorm){
+        Utilities utilities = new Utilities();
         boolean canShoot = true;
         for (Worm anotherWorm : this.wormsData) {
             if (currentWorm.id != anotherWorm.id && anotherWorm.health > 0) {
@@ -326,7 +339,7 @@ public class Bot {
             }
         }
 
-        return canShoot ? new ShootCommand(direction) : EscapeShootStrategy(enemyWorm);
+        return canShoot ? new ShootCommand(direction) : EscapeLavaStrategy();
     }
 
     private Command BananaBombStrategy(Worm enemyWorm, Direction direction){
@@ -353,6 +366,7 @@ public class Bot {
                     int x = enemyWorm.position.x - (2-i);
                     int y = enemyWorm.position.y - (2-j);
                     if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[1].position.x && y==gameState.myPlayer.worms[1].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
+                        System.out.println("ANJING");
                         return new ShootCommand(direction);
                     }
                 }
@@ -361,6 +375,7 @@ public class Bot {
                     int x = enemyWorm.position.x - (2-i);
                     int y = enemyWorm.position.y - (2-j);
                     if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[1].position.x && y==gameState.myPlayer.worms[1].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
+                        System.out.println("ANJING2");
                         return new ShootCommand(direction);
                     }
                 }
