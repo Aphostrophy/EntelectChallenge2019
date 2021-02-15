@@ -6,6 +6,9 @@ public class Worm {
     @SerializedName("id")
     public int id;
 
+    @SerializedName("playerId")
+    public int playerId;
+
     @SerializedName("health")
     public int health;
 
