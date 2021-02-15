@@ -54,21 +54,23 @@ public class Bot {
         }
 
         List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-        int cellIdx = utilities.getDirtID(surroundingBlocks);
-
-        if(cellIdx == -1){
+        Cell destBlock = getNearestObjective(currentWorm.position.x, currentWorm.position.y);
+        Cell chosenBlock = getNearestPath(surroundingBlocks, destBlock.x, destBlock.y);
+//        int cellIdx = utilities.getDirtID(surroundingBlocks);
+//
+//        if(cellIdx == -1){
+//            return EscapeLavaStrategy(surroundingBlocks);
+//        } else{
+//            Cell block = surroundingBlocks.get(cellIdx);
+        if (chosenBlock.type == CellType.AIR) {
+            return new MoveCommand(chosenBlock.x, chosenBlock.y);
+        } else if (chosenBlock.type == CellType.DIRT) {
+            return new DigCommand(chosenBlock.x, chosenBlock.y);
+        } else if (chosenBlock.type==CellType.LAVA) {
             return EscapeLavaStrategy(surroundingBlocks);
-        } else{
-            Cell block = surroundingBlocks.get(cellIdx);
-            if (block.type == CellType.AIR) {
-                return new MoveCommand(block.x, block.y);
-            } else if (block.type == CellType.DIRT) {
-                return new DigCommand(block.x, block.y);
-            } else if (block.type==CellType.LAVA) {
-                return EscapeLavaStrategy(surroundingBlocks);
-            }
         }
-
+//        }
+//
         return new DoNothingCommand();
     }
 
@@ -137,21 +139,62 @@ public class Bot {
     }
 
     private Cell getNearestPath(List<Cell> surroundingBlocks, int destX, int destY) {
-        List<Test> newList = new ArrayList<Test>();
+        List<CellDistance> distanceList = new ArrayList<CellDistance>();
+
         for(int i = 0; i < surroundingBlocks.size(); i++) {
-            Test foo = new Test(surroundingBlocks.get(i), euclideanDistance(surroundingBlocks.get(i).x,surroundingBlocks.get(i).y, destX, destY));
-            newList.add(foo);
+            CellDistance d = new CellDistance(surroundingBlocks.get(i), euclideanDistance(surroundingBlocks.get(i).x,surroundingBlocks.get(i).y, destX, destY));
+            distanceList.add(d);
         }
-        List<Test> sortedList = newList.stream()
-                .sorted(Comparator.comparing(Test::getDistance))
+
+        List<CellDistance> sortedDistance = distanceList.stream()
+                .sorted(Comparator.comparing(CellDistance::getDistance))
                 .collect(Collectors.toList());
-        for(int i = 0; i < sortedList.size(); i++) {
-            System.out.printf("%d %d %d\n", sortedList.get(i).cell.x, sortedList.get(i).cell.y, sortedList.get(i).distance);
-        }
-        return sortedList.get(0).cell;
+
+        return sortedDistance.get(0).cell;
     }
 
-    private class Test {
+    private int calculateTurnToDest(int initialX, int initialY, int destX, int destY) {
+        int total = 0;
+        List<Cell> surroundingBlocks = getSurroundingCells(initialX, initialY);
+        Cell block = getNearestPath(surroundingBlocks, destX, destY);
+
+        while(block.x != destX || block.y != destY) {
+            if(block.type == CellType.DIRT) {
+                total += 2;
+            } else if(block.type == CellType.AIR) {
+                total += 1;
+            }
+            surroundingBlocks = getSurroundingCells(block.x, block.y);
+            block = getNearestPath(surroundingBlocks, destX, destY);
+        }
+        return total;
+    }
+
+    private Cell getNearestObjective(int currPosX, int currPosY) {
+        List<Cell> objectives = new ArrayList<Cell>();
+
+        for(int i = 0; i < 33; i++) {
+            for(int j = 0; j < 33; j++) {
+                if((gameState.map[j][i].occupier != null && gameState.map[j][i].occupier.playerId == opponent.id) || gameState.map[j][i].powerup != null) {
+                    objectives.add(gameState.map[j][i]);
+                }
+            }
+        }
+
+        List<CellTurn> objectivesDistance = new ArrayList<CellTurn>();
+        for(int i = 0; i < objectives.size(); i++) {
+            CellTurn foo = new CellTurn(objectives.get(i), calculateTurnToDest(currPosX, currPosY, objectives.get(i).x, objectives.get(i).y));
+            objectivesDistance.add(foo);
+        }
+
+        List<CellTurn> sortedObjectives = objectivesDistance.stream()
+                .sorted(Comparator.comparing(CellTurn::getTurns))
+                .collect(Collectors.toList());
+
+        return sortedObjectives.get(0).cell;
+    }
+
+    private class CellDistance {
         Cell cell;
         int distance;
 
@@ -159,9 +202,21 @@ public class Bot {
             return distance;
         }
 
-        Test(Cell cell, int distance){
+        CellDistance(Cell cell, int distance){
             this.cell = cell;
             this.distance = distance;
+        }
+    }
+
+    private class CellTurn {
+        Cell cell;
+        int turns;
+
+        public int getTurns() {return turns;}
+
+        CellTurn(Cell cell, int turns) {
+            this.cell = cell;
+            this.turns = turns;
         }
     }
 

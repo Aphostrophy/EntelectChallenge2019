@@ -14,5 +14,8 @@ public class Cell {
     public CellType type;
 
     @SerializedName("powerup")
-    public PowerUp powerUp;
+    public PowerUp powerup;
+
+    @SerializedName("occupier")
+    public Worm occupier;
 }
