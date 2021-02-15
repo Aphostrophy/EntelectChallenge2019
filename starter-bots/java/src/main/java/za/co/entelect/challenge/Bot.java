@@ -211,7 +211,7 @@ public class Bot {
         if(currentWorm.position.x==enemyWorm.position.x){
             moveX = x<33/2 ? ++x : --x;
             for (Worm cacingMusuh : opponent.worms) {
-                if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY) {
+                if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY &&cacingMusuh.health>0) {
                     conflict=true;
                 }
             }
@@ -253,13 +253,13 @@ public class Bot {
 //                System.out.println("Bisa ngebom");
 //                System.out.println("Posisi gw : " + currentWorm.position.x + " " + currentWorm.position.y);
 //                System.out.println("Posisi musuh terdekat : " + enemyWorm.position.x + " " + enemyWorm.position.y);
-                return new BombCommand(enemyWorm.position.x, enemyWorm.position.y);
+                return BananaBombStrategy(enemyWorm,direction);
             }
             System.out.println("gabisa ngebom");
         }if(currentWorm.id == 3) {
             if(currentWorm.snowballs.count > 0 && enemyWorm.roundsUntilUnfrozen==0) {
                 System.out.println("Bisa ngefreeze");
-                return new SnowballCommand(enemyWorm.position.x, enemyWorm.position.y);
+                return SnowballStrategy(enemyWorm,direction);
             }
         }
         return new ShootCommand(direction);
@@ -268,4 +268,59 @@ public class Bot {
 //    private Command ShootStrategy(Direction direction,Worm enemyWorm){
 //
 //    }
+
+    private Command BananaBombStrategy(Worm enemyWorm, Direction direction){
+//        for(Worm w : gameState.myPlayer.worms){
+//            for(int i=0;i<5;i++){
+//                if(i<3){
+//                    for(int j=2-i;j<3+i;j++){
+//                        int x = w.position.x - (2-i);
+//                        int y = w.position.y - (2-j);
+//                        System.out.println(x+ ":" + y);
+//                    }
+//                } else{
+//                    for(int j=i-2;j<7-i;j++ ){
+//                        int x = w.position.x - (2-i);
+//                        int y = w.position.y - (2-j);
+//                        System.out.println(x+ ":" + y);
+//                    }
+//                }
+//            }
+//        }
+        for(int i=0;i<5;i++){
+            if(i<3){
+                for(int j=2-i;j<3+i;j++){
+                    int x = enemyWorm.position.x - (2-i);
+                    int y = enemyWorm.position.y - (2-j);
+                    if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[1].position.x && y==gameState.myPlayer.worms[1].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
+                        return new ShootCommand(direction);
+                    }
+                }
+            } else{
+                for(int j=i-2;j<7-i;j++ ){
+                    int x = enemyWorm.position.x - (2-i);
+                    int y = enemyWorm.position.y - (2-j);
+                    if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[1].position.x && y==gameState.myPlayer.worms[1].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
+                        return new ShootCommand(direction);
+                    }
+                }
+            }
+        }
+        return new BombCommand(enemyWorm.position.x, enemyWorm.position.y);
+    }
+
+    private Command SnowballStrategy(Worm enemyWorm, Direction direction){
+        for(Worm w : gameState.myPlayer.worms){
+            int x = w.position.x;
+            int y = w.position.y;
+            for(int i=enemyWorm.position.x-1;i<enemyWorm.position.x+1;i++){
+                for(int j=enemyWorm.position.y-1;j<enemyWorm.position.y+1;j++){
+                    if(i==x && j==y){
+                        return new ShootCommand(direction);
+                    }
+                }
+            }
+        }
+        return new SnowballCommand(enemyWorm.position.x, enemyWorm.position.y);
+    }
 }
