@@ -42,12 +42,12 @@ public class Bot {
         Utilities utilities = new Utilities();
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-            System.out.println(enemyWorm.id);
-            System.out.println(opponent.currentWormId);
+//            System.out.println(enemyWorm.id);
+//            System.out.println(opponent.currentWormId);
             if(enemyWorm.id == opponent.currentWormId){
                 return EscapeShootStrategy();
             } else{
-                return new ShootCommand(direction);
+                return ShootStrategy(enemyWorm);
             }
         }
 
@@ -180,4 +180,23 @@ public class Bot {
         return new MoveCommand(moveX,moveY);
     }
 
+    private Command ShootStrategy(Worm enemyWorm) {
+        // First check can use bomb or not
+        Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
+        if(currentWorm.id == 2) {
+            if(currentWorm.bananaBombs.count > 0) {
+//                System.out.println("Bisa ngebom");
+//                System.out.println("Posisi gw : " + currentWorm.position.x + " " + currentWorm.position.y);
+//                System.out.println("Posisi musuh terdekat : " + enemyWorm.position.x + " " + enemyWorm.position.y);
+                return new BombCommand(enemyWorm.position.x, enemyWorm.position.y);
+            }
+            System.out.println("gabisa ngebom");
+        }if(currentWorm.id == 3) {
+            if(currentWorm.snowballs.count > 0) {
+                System.out.println("Bisa ngefreeze");
+                return new SnowballCommand(enemyWorm.position.x, enemyWorm.position.y);
+            }
+        }
+        return new ShootCommand(direction);
+    }
 }

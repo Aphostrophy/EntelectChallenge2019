@@ -7,9 +7,11 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="java-sample-bot" />
+        <module name="EntelectChallenge" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="EntelectChallenge" target="1.5" />
       <module name="java-sample-bot" target="8" />
     </bytecodeTargetLevel>
   </component>
