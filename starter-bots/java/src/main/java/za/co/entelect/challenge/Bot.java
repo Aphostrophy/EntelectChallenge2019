@@ -14,12 +14,14 @@ public class Bot {
     private GameState gameState;
     private Opponent opponent;
     private MyWorm currentWorm;
+    private Worm[] wormsData;
 
     public Bot(Random random, GameState gameState) {
         this.random = random;
         this.gameState = gameState;
         this.opponent = gameState.opponents[0];
         this.currentWorm = getCurrentWorm(gameState);
+        this.wormsData = gameState.myPlayer.worms;
     }
 
     private MyWorm getCurrentWorm(GameState gameState) {
@@ -42,8 +44,6 @@ public class Bot {
         Utilities utilities = new Utilities();
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
-//            System.out.println(enemyWorm.id);
-//            System.out.println(opponent.currentWormId);
             if(enemyWorm.id == opponent.currentWormId){
                 return EscapeShootStrategy();
             } else{
@@ -210,22 +210,31 @@ public class Bot {
     }
 
     private Command ShootStrategy(Worm enemyWorm) {
+        Utilities utilities = new Utilities();
+
         // First check can use bomb or not
         Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
         if(currentWorm.id == 2) {
             if(currentWorm.bananaBombs.count > 0) {
-//                System.out.println("Bisa ngebom");
-//                System.out.println("Posisi gw : " + currentWorm.position.x + " " + currentWorm.position.y);
-//                System.out.println("Posisi musuh terdekat : " + enemyWorm.position.x + " " + enemyWorm.position.y);
                 return new BombCommand(enemyWorm.position.x, enemyWorm.position.y);
             }
-            System.out.println("gabisa ngebom");
-        }if(currentWorm.id == 3) {
+        }else if(currentWorm.id == 3) {
             if(currentWorm.snowballs.count > 0) {
-                System.out.println("Bisa ngefreeze");
                 return new SnowballCommand(enemyWorm.position.x, enemyWorm.position.y);
             }
         }
-        return new ShootCommand(direction);
+
+        boolean canShoot = true;
+        for(Worm anotherWorm : this.wormsData){
+            if(currentWorm.id != anotherWorm.id && anotherWorm.health > 0) {
+                // Check gradiennya gimana
+                if(utilities.gradient(currentWorm, anotherWorm) == utilities.gradient(currentWorm, enemyWorm)){
+                    canShoot = false;
+                    break;
+                }
+            }
+        }
+
+        return canShoot ? new ShootCommand(direction) : EscapeShootStrategy();
     }
 }
