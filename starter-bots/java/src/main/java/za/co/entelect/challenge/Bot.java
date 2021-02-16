@@ -51,6 +51,17 @@ public class Bot {
             }
         }
 
+        if(currentWorm.id == 3) {
+            Cell destBlock = follow(1);
+            if(destBlock == null) {
+                destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
+            } else {
+                if(euclideanDistance(currentWorm.position.x, currentWorm.position.y, destBlock.x, destBlock.y) > 3) {
+                    return moveToObjective(currentWorm.position.x, currentWorm.position.y, destBlock);
+                }
+            }
+        }
+
         Cell destBlock = getNearestPowerup(currentWorm.position.x, currentWorm.position.y);
         if(destBlock == null) {
             destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
@@ -218,6 +229,20 @@ public class Bot {
         }
 
         return new DoNothingCommand();
+    }
+
+    private Cell follow(int id) {
+        for(int i = 0; i < 33; i++) {
+            for(int j = 0; j < 33; j++) {
+                if(gameState.map[j][i].occupier != null &&
+                        gameState.map[j][i].occupier.id == id &&
+                        gameState.map[j][i].occupier.playerId == gameState.myPlayer.id &&
+                        gameState.map[j][i].occupier.health > 0) {
+                    return gameState.map[j][i];
+                }
+            }
+        }
+        return null;
     }
 
     private class CellDistance {
