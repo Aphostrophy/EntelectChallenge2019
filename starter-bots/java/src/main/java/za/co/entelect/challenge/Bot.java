@@ -46,19 +46,11 @@ public class Bot {
             }
         }
 
-        List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-        Cell destBlock = getNearestObjective(currentWorm.position.x, currentWorm.position.y);
-        Cell chosenBlock = getNearestPath(surroundingBlocks, destBlock.x, destBlock.y);
-
-        if (chosenBlock.type == CellType.AIR) {
-            return new MoveCommand(chosenBlock.x, chosenBlock.y);
-        } else if (chosenBlock.type == CellType.DIRT) {
-            return new DigCommand(chosenBlock.x, chosenBlock.y);
-        } else if (chosenBlock.type==CellType.LAVA) {
-            return EscapeLavaStrategy();
+        Cell destBlock = getNearestPowerup(currentWorm.position.x, currentWorm.position.y);
+        if(destBlock == null) {
+            destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
         }
-
-        return new DoNothingCommand();
+        return moveToObjective(currentWorm.position.x, currentWorm.position.y, destBlock);
     }
 
     private Worm getFirstWormInRange() {
@@ -157,12 +149,12 @@ public class Bot {
         return total;
     }
 
-    private Cell getNearestObjective(int currPosX, int currPosY) {
+    private Cell getNearestEnemy(int currPosX, int currPosY) {
         List<Cell> objectives = new ArrayList<Cell>();
 
         for(int i = 0; i < 33; i++) {
             for(int j = 0; j < 33; j++) {
-                if((gameState.map[j][i].occupier != null && gameState.map[j][i].occupier.playerId == opponent.id) || gameState.map[j][i].powerup != null) {
+                if(gameState.map[j][i].occupier != null && gameState.map[j][i].occupier.playerId == opponent.id) {
                     objectives.add(gameState.map[j][i]);
                 }
             }
@@ -170,8 +162,8 @@ public class Bot {
 
         List<CellTurn> objectivesDistance = new ArrayList<CellTurn>();
         for(int i = 0; i < objectives.size(); i++) {
-            CellTurn foo = new CellTurn(objectives.get(i), calculateTurnToDest(currPosX, currPosY, objectives.get(i).x, objectives.get(i).y));
-            objectivesDistance.add(foo);
+            CellTurn t = new CellTurn(objectives.get(i), calculateTurnToDest(currPosX, currPosY, objectives.get(i).x, objectives.get(i).y));
+            objectivesDistance.add(t);
         }
 
         List<CellTurn> sortedObjectives = objectivesDistance.stream()
@@ -179,6 +171,48 @@ public class Bot {
                 .collect(Collectors.toList());
 
         return sortedObjectives.get(0).cell;
+    }
+
+    private Cell getNearestPowerup(int currPosX, int currPosY) {
+        List<Cell> objectives = new ArrayList<Cell>();
+
+        for(int i = 0; i < 33; i++) {
+            for(int j = 0; j < 33; j++) {
+                if(gameState.map[j][i].powerup != null) {
+                    objectives.add(gameState.map[j][i]);
+                }
+            }
+        }
+
+        if(objectives.size() == 0) {return null;}
+
+        List<CellTurn> objectivesDistance = new ArrayList<CellTurn>();
+        for(int i = 0; i < objectives.size(); i++) {
+            CellTurn t = new CellTurn(objectives.get(i), calculateTurnToDest(currPosX, currPosY, objectives.get(i).x, objectives.get(i).y));
+            objectivesDistance.add(t);
+        }
+
+        List<CellTurn> sortedObjectives = objectivesDistance.stream()
+                .sorted(Comparator.comparing(CellTurn::getTurns))
+                .collect(Collectors.toList());
+
+        return sortedObjectives.get(0).cell;
+
+    }
+
+    private Command moveToObjective(int initialX, int initialY, Cell destination) {
+        List<Cell> surroundingBlocks = getSurroundingCells(initialX, initialY);
+        Cell chosenBlock = getNearestPath(surroundingBlocks, destination.x, destination.y);
+
+        if (chosenBlock.type == CellType.AIR) {
+            return new MoveCommand(chosenBlock.x, chosenBlock.y);
+        } else if (chosenBlock.type == CellType.DIRT) {
+            return new DigCommand(chosenBlock.x, chosenBlock.y);
+        } else if (chosenBlock.type==CellType.LAVA) {
+            return EscapeLavaStrategy();
+        }
+
+        return new DoNothingCommand();
     }
 
     private class CellDistance {
