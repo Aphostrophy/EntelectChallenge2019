@@ -285,6 +285,9 @@ public class Bot {
     }
 
     private Command EscapeShootStrategy(Worm enemyWorm){
+
+        Utilities utilities = new Utilities();
+
         int x = currentWorm.position.x;
         int y = currentWorm.position.y;
         int moveX = x;
@@ -292,47 +295,96 @@ public class Bot {
         boolean conflict = false;
 
         if(currentWorm.position.x==enemyWorm.position.x){
-            moveX = x<33/2 ? ++x : --x;
-            for (Worm cacingMusuh : opponent.worms) {
-                if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY &&cacingMusuh.health>0) {
-                    conflict = true;
+            System.out.println("Escape shoot strategy alternatif 1");
+            moveX = x<33/2 ? x+1 : x-1;
+            conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+
+            if(conflict){ //Jika conflict coba jalan lain terlebih dahulu
+                moveX = x<33/2 ? x-1: x+1;
+                conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                if(conflict){
+                    moveX = x<33/2? x+1 : x-1;
+                    moveY = y<33/2 ? y+1 : y-1;
+                    conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                    if(conflict){
+                        moveX = x<33/2 ? x+1 : x-1;
+                        moveY = y<33/2 ? y-1 : y+1;
+                        conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                        if(conflict){
+                            moveX = x < 33/2 ? x-1 : x+1;
+                            moveY = y < 33/2 ? y+1 : y-1;
+                            conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                            if(conflict){
+                                moveX = x < 33/2 ? x-1 : x+1;
+                                moveY = y < 33/2 ? y-1 : y+1;
+                                conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                                if(conflict){
+                                    return AttackStrategy(enemyWorm);
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-            if(gameState.map[y][x].type == CellType.DEEP_SPACE || gameState.map[y][x].type == CellType.DIRT){
-                conflict = true;
-            }
-            if(conflict){
-                return AttackStrategy(enemyWorm);
             }
 
         } else if(currentWorm.position.y==enemyWorm.position.y){
-            moveY = y<33/2 ? ++y : --y;
-            for (Worm cacingMusuh : opponent.worms) {
-                if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY) {
-                    conflict = true;
+            System.out.println("Escape shoot strategy alternatif 2");
+            moveY = y<33/2 ? y+1 : y-1;
+            conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+
+            if(conflict) { //Jika conflict coba jalan lain terlebih dahulu
+                moveY = y < 33 / 2 ? y-1 : y+1;
+                conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                if (conflict) {
+                    moveY = y < 33 / 2 ? y+1 : y-1;
+                    moveX = y < 33 / 2 ? x+1 : x-1;
+                    conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                    if (conflict) {
+                        moveY = y < 33 / 2 ? y+1 : y-1;
+                        moveX = x < 33 / 2 ? x-1 : x+1;
+                        conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                        if (conflict) {
+                            moveY = y < 33 / 2 ? y-1 : y+1;
+                            moveX = x < 33 / 2 ? x+1: x-1;
+                            conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                            if (conflict) {
+                                moveY = y < 33 / 2 ? y-1 : y+1;
+                                moveX = x < 33 / 2 ? x-1 : x+1;
+                                conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                                if (conflict) {
+                                    return AttackStrategy(enemyWorm);
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-            if(gameState.map[y][x].type == CellType.DEEP_SPACE || gameState.map[y][x].type == CellType.DIRT){
-                conflict = true;
-            }
-            if(conflict){
-                return AttackStrategy(enemyWorm);
             }
         } else { // currentWorm.position.x != enemyWorm.position.x && currentWorm.position.y != enemyWorm.position.y
-            moveX = x<33/2 ? ++x : --x;
-            moveY = y<33/2 ? ++y : --y;
-            for (Worm cacingMusuh : opponent.worms) {
-                if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY) {
-                    conflict=true;
+            System.out.println("Escape shoot strategy alternatif 3");
+            moveX = x<33/2? x+1 : x-1;
+            moveY = y<33/2 ? y+1 :y-1;
+            conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+            if(conflict){
+                moveX = x<33/2 ? x+1 : x-1;
+                moveY = y<33/2 ? y-1 : y+1;
+                conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                if(conflict){
+                    moveX = x < 33/2 ? x-1 : x+1;
+                    moveY = y < 33/2 ? y+1 : y-1;
+                    conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                    if(conflict){
+                        moveX = x < 33/2 ? x-1 : x+1;
+                        moveY = y < 33/2 ? y-1 : y+1;
+                        conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                        if(conflict){
+                            return AttackStrategy(enemyWorm);
+                        }
+                    }
                 }
             }
-            if(gameState.map[y][x].type == CellType.DEEP_SPACE || gameState.map[y][x].type == CellType.DIRT){
-                conflict = true;
-            }
-            if(conflict){
-                return AttackStrategy(enemyWorm);
-            }
         }
+
+        System.out.println("Avoid shoot strategy executed!");
 
         return new MoveCommand(moveX,moveY);
     }
@@ -364,6 +416,8 @@ public class Bot {
                 }
             }
         }
+        System.out.println("Shoot strategy executed!");
+        System.out.println(canShoot);
 
         return canShoot ? new ShootCommand(direction) : avoidFriendlyFire(enemyWorm);
     }

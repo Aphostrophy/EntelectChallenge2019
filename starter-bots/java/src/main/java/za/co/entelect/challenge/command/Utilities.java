@@ -30,5 +30,21 @@ public class Utilities {
         float deltaY = Math.abs(w1.position.y - w2.position.y);
         return deltaY/deltaX;
     }
+
+    public boolean isPathInvalid(Worm enemyWorm, Worm currentWorm,Opponent opponent, int moveX, int moveY, GameState gameState){
+        int y = currentWorm.position.y;
+        int x = currentWorm.position.x;
+
+        for (Worm cacingMusuh : opponent.worms) {
+            if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY &&cacingMusuh.health>0) {
+                return true;
+            }
+        }
+        if(gameState.map[moveY][moveX].type == CellType.DEEP_SPACE || gameState.map[moveY][moveX].type == CellType.DIRT){
+            return true;
+        }
+        return false;
+    }
+
 }
 
