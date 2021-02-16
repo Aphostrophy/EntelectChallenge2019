@@ -39,15 +39,15 @@ public class Bot {
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
 
-            Cell cell = gameState.map[currentWorm.position.y][currentWorm.position.y];
+            Cell cell = gameState.map[currentWorm.position.y][currentWorm.position.x];
 
             if (cell.type == CellType.LAVA) {
                 return EscapeLavaStrategy();
             } else if (enemyWorm.id == opponent.currentWormId && enemyWorm.roundsUntilUnfrozen == 0) {
                 return EscapeShootStrategy(enemyWorm);
             } else {
-//                return AttackStrategy(enemyWorm);
-                return EscapeShootStrategy(enemyWorm);
+                return AttackStrategy(enemyWorm);
+//                return EscapeShootStrategy(enemyWorm);
             }
         }
 
@@ -277,10 +277,90 @@ public class Bot {
     }
 
     private Command EscapeLavaStrategy(){
+
+        Utilities utilities = new Utilities();
+
         int x = currentWorm.position.x;
         int y = currentWorm.position.y;
-        int moveX = x<33/2 ? ++x : --x;
-        int moveY = y<33/2 ? ++y : --y;
+        int moveX = x<33/2 ? x+1 : x-1;
+        int moveY = y<33/2 ? y+1 : y-1;
+        boolean conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+        if(conflict){
+            moveX = x<33/2 ? x+1 : x-1;
+            moveY = y;
+            conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+            if(conflict){
+                moveX = x;
+                moveY = y<33/2 ? y+1 : y-1;
+                conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+                if(conflict){
+                    moveX = x<33/2 ? x-1 : x+1;
+                    moveY = y<33/2 ? y+1 : y-1;
+                    conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+                    if(conflict){
+                        moveX = x<33/2 ? x+1 : x-1;
+                        moveY = y<33/2 ? y-1 : y+1;
+                        conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+                        if(conflict){
+                            moveX = x;
+                            moveY = y<33/2 ? y-1 : y+1;
+                            conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+                            if(conflict){
+                                moveX = x<33/2 ? x-1 : x+1;
+                                moveY = y;
+                                if(conflict){
+                                    return new DoNothingCommand();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return new MoveCommand(moveX,moveY);
+    }
+
+    private Command EscapeLavaStrategy(Worm enemyWorm){
+
+        Utilities utilities = new Utilities();
+
+        int x = currentWorm.position.x;
+        int y = currentWorm.position.y;
+        int moveX = x<33/2 ? x+1 : x-1;
+        int moveY = y<33/2 ? y+1 : y-1;
+        boolean conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+        if(conflict){
+            moveX = x<33/2 ? x+1 : x-1;
+            moveY = y;
+            conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+            if(conflict){
+                moveX = x;
+                moveY = y<33/2 ? y+1 : y-1;
+                conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+                if(conflict){
+                    moveX = x<33/2 ? x-1 : x+1;
+                    moveY = y<33/2 ? y+1 : y-1;
+                    conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+                    if(conflict){
+                        moveX = x<33/2 ? x+1 : x-1;
+                        moveY = y<33/2 ? y-1 : y+1;
+                        conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+                        if(conflict){
+                            moveX = x;
+                            moveY = y<33/2 ? y-1 : y+1;
+                            conflict = utilities.isPathInvalid(currentWorm,gameState,moveX,moveY);
+                            if(conflict){
+                                moveX = x<33/2 ? x-1 : x+1;
+                                moveY = y;
+                                if(conflict){
+                                    return AttackStrategy(enemyWorm);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return new MoveCommand(moveX,moveY);
     }
 
@@ -321,7 +401,7 @@ public class Bot {
             }
         }
 
-        return EscapeLavaStrategy();
+        return EscapeLavaStrategy(enemyWorm);
     }
 
     private Command EscapeShootStrategy(Worm enemyWorm){

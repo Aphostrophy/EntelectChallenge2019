@@ -40,11 +40,25 @@ public class Utilities {
                 return true;
             }
         }
-        if(gameState.map[moveY][moveX].type == CellType.DEEP_SPACE || gameState.map[moveY][moveX].type == CellType.DIRT){
+        if(gameState.map[moveY][moveX].type == CellType.DEEP_SPACE || gameState.map[moveY][moveX].type == CellType.DIRT || gameState.map[moveY][moveX].type == CellType.LAVA){
             return true;
         }
         return false;
     }
 
+    public boolean isPathInvalid(Worm currentWorm,GameState gameState,int moveX,int moveY){
+        int y = currentWorm.position.y;
+        int x = currentWorm.position.x;
+
+        for (Worm cacingMusuh : gameState.opponents[0].worms) {
+            if ((cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY &&cacingMusuh.health>0) || (gameState.myPlayer.worms[0].position.x==moveX && gameState.myPlayer.worms[0].position.y==moveY) || (gameState.myPlayer.worms[1].position.x==moveX && gameState.myPlayer.worms[1].position.y==moveY)|| (gameState.myPlayer.worms[2].position.x==moveX && gameState.myPlayer.worms[2].position.y==moveY)){
+                return true;
+            }
+        }
+        if(gameState.map[moveY][moveX].type == CellType.DEEP_SPACE || gameState.map[moveY][moveX].type == CellType.DIRT || gameState.map[moveY][moveX].type == CellType.LAVA){
+            return true;
+        }
+        return false;
+    }
 }
 
