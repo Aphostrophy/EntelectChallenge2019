@@ -31,13 +31,6 @@ public class Bot {
                 .get();
     }
 
-//    private int getOpponentWorm(GameState gameState) {
-//        return Arrays.stream(gameState.myPlayer.worms)
-//                .filter(myWorm -> myWorm.id == gameState.currentWormId)
-//                .findFirst()
-//                .get();
-//    }
-
     public Command run() {
 
         Worm enemyWorm = getFirstWormInRange();
@@ -56,12 +49,7 @@ public class Bot {
         List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
         Cell destBlock = getNearestObjective(currentWorm.position.x, currentWorm.position.y);
         Cell chosenBlock = getNearestPath(surroundingBlocks, destBlock.x, destBlock.y);
-//        int cellIdx = utilities.getDirtID(surroundingBlocks);
-//
-//        if(cellIdx == -1){
-//            return EscapeLavaStrategy(surroundingBlocks);
-//        } else{
-//            Cell block = surroundingBlocks.get(cellIdx);
+
         if (chosenBlock.type == CellType.AIR) {
             return new MoveCommand(chosenBlock.x, chosenBlock.y);
         } else if (chosenBlock.type == CellType.DIRT) {
@@ -69,8 +57,7 @@ public class Bot {
         } else if (chosenBlock.type==CellType.LAVA) {
             return EscapeLavaStrategy();
         }
-//        }
-//
+
         return new DoNothingCommand();
     }
 
@@ -258,6 +245,45 @@ public class Bot {
         return new MoveCommand(moveX,moveY);
     }
 
+    private Command EscapeEnemyStrategy(Worm enemyWorm) {
+        int x = currentWorm.position.x;
+        int y = currentWorm.position.y;
+        int enemyX = enemyWorm.position.x;
+        int enemyY = enemyWorm.position.y;
+
+        for(int i = x - 1; i <= x + 1; i++){
+            if(x == enemyX && i == x){
+                continue;
+            }
+
+            for(int j = y - 1; j <= y + 1; j++){
+                if(y == enemyY && j == y) {
+                    continue;
+                }
+
+                if(gameState.map[j][i].type == CellType.AIR){
+                    return new MoveCommand(i, j);
+                }
+            }
+        }
+
+        return AttackAnotherWorm(enemyWorm);
+    }
+
+    private Command AttackAnotherWorm(Worm enemyWorm) {
+        Utilities utilities = new Utilities();
+        for(Worm anotherEnemyWorm : opponent.worms){
+            if(anotherEnemyWorm.id != enemyWorm.id){
+                if(utilities.gradient(currentWorm, enemyWorm) != utilities.gradient(currentWorm, anotherEnemyWorm)){
+                    Direction direction = resolveDirection(currentWorm.position, anotherEnemyWorm.position);
+                    return new ShootCommand(direction);
+                }
+            }
+        }
+
+        return EscapeLavaStrategy();
+    }
+
     private Command EscapeShootStrategy(Worm enemyWorm){
         int x = currentWorm.position.x;
         int y = currentWorm.position.y;
@@ -269,7 +295,7 @@ public class Bot {
             moveX = x<33/2 ? ++x : --x;
             for (Worm cacingMusuh : opponent.worms) {
                 if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY &&cacingMusuh.health>0) {
-                    conflict=true;
+                    conflict = true;
                 }
             }
             if(gameState.map[y][x].type == CellType.DEEP_SPACE || gameState.map[y][x].type == CellType.DIRT){
@@ -283,7 +309,7 @@ public class Bot {
             moveY = y<33/2 ? ++y : --y;
             for (Worm cacingMusuh : opponent.worms) {
                 if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY) {
-                    conflict=true;
+                    conflict = true;
                 }
             }
             if(gameState.map[y][x].type == CellType.DEEP_SPACE || gameState.map[y][x].type == CellType.DIRT){
@@ -339,27 +365,10 @@ public class Bot {
             }
         }
 
-        return canShoot ? new ShootCommand(direction) : EscapeLavaStrategy();
+        return canShoot ? new ShootCommand(direction) : EscapeEnemyStrategy(enemyWorm);
     }
 
     private Command BananaBombStrategy(Worm enemyWorm, Direction direction){
-//        for(Worm w : gameState.myPlayer.worms){
-//            for(int i=0;i<5;i++){
-//                if(i<3){
-//                    for(int j=2-i;j<3+i;j++){
-//                        int x = w.position.x - (2-i);
-//                        int y = w.position.y - (2-j);
-//                        System.out.println(x+ ":" + y);
-//                    }
-//                } else{
-//                    for(int j=i-2;j<7-i;j++ ){
-//                        int x = w.position.x - (2-i);
-//                        int y = w.position.y - (2-j);
-//                        System.out.println(x+ ":" + y);
-//                    }
-//                }
-//            }
-//        }
         for(int i=0;i<5;i++){
             if(i<3){
                 for(int j=2-i;j<3+i;j++){
