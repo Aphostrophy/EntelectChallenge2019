@@ -46,21 +46,24 @@ public class Bot {
             }
         }
 
-        if(currentWorm.id == 3) {
-            Cell destBlock = follow(1);
+        Cell destBlock = getNearestObjective(currentWorm.position.x, currentWorm.position.y);
+
+        if(currentWorm.id == 1) {
+            destBlock = hunt(2);
+            if(destBlock == null) {
+                destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
+            }
+        } else if(currentWorm.id == 3) {
+            destBlock = follow(1);
             if(destBlock == null) {
                 destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
             } else {
-                if(euclideanDistance(currentWorm.position.x, currentWorm.position.y, destBlock.x, destBlock.y) > 3) {
-                    return moveToObjective(currentWorm.position.x, currentWorm.position.y, destBlock);
+                if(euclideanDistance(currentWorm.position.x, currentWorm.position.y, destBlock.x, destBlock.y) <= 3) {
+                    destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
                 }
             }
         }
 
-        Cell destBlock = getNearestPowerup(currentWorm.position.x, currentWorm.position.y);
-        if(destBlock == null) {
-            destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
-        }
         return moveToObjective(currentWorm.position.x, currentWorm.position.y, destBlock);
     }
 
@@ -160,6 +163,30 @@ public class Bot {
         return total;
     }
 
+    private Cell getNearestObjective(int currPosX, int currPosY) {
+        List<Cell> objectives = new ArrayList<Cell>();
+
+        for(int i = 0; i < 33; i++) {
+            for(int j = 0; j < 33; j++) {
+                if((gameState.map[j][i].occupier != null && gameState.map[j][i].occupier.playerId == opponent.id) || gameState.map[j][i].powerup != null) {
+                    objectives.add(gameState.map[j][i]);
+                }
+            }
+        }
+
+        List<CellTurn> objectivesDistance = new ArrayList<CellTurn>();
+        for(int i = 0; i < objectives.size(); i++) {
+            CellTurn t = new CellTurn(objectives.get(i), calculateTurnToDest(currPosX, currPosY, objectives.get(i).x, objectives.get(i).y));
+            objectivesDistance.add(t);
+        }
+
+        List<CellTurn> sortedObjectives = objectivesDistance.stream()
+                .sorted(Comparator.comparing(CellTurn::getTurns))
+                .collect(Collectors.toList());
+
+        return sortedObjectives.get(0).cell;
+    }
+
     private Cell getNearestEnemy(int currPosX, int currPosY) {
         List<Cell> objectives = new ArrayList<Cell>();
 
@@ -232,6 +259,20 @@ public class Bot {
                 if(gameState.map[j][i].occupier != null &&
                         gameState.map[j][i].occupier.id == id &&
                         gameState.map[j][i].occupier.playerId == gameState.myPlayer.id &&
+                        gameState.map[j][i].occupier.health > 0) {
+                    return gameState.map[j][i];
+                }
+            }
+        }
+        return null;
+    }
+
+    private Cell hunt(int id) {
+        for(int i = 0; i < 33; i++) {
+            for(int j = 0; j < 33; j++) {
+                if(gameState.map[j][i].occupier != null &&
+                        gameState.map[j][i].occupier.id == id &&
+                        gameState.map[j][i].occupier.playerId == opponent.id &&
                         gameState.map[j][i].occupier.health > 0) {
                     return gameState.map[j][i];
                 }
