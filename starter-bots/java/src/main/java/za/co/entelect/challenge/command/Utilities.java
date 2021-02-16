@@ -36,7 +36,7 @@ public class Utilities {
         int x = currentWorm.position.x;
 
         for (Worm cacingMusuh : opponent.worms) {
-            if (cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY &&cacingMusuh.health>0) {
+            if ((cacingMusuh.position.x == moveX  && cacingMusuh.position.y ==moveY &&cacingMusuh.health>0) || (gameState.myPlayer.worms[0].position.x==moveX && gameState.myPlayer.worms[0].position.y==moveY) || (gameState.myPlayer.worms[1].position.x==moveX && gameState.myPlayer.worms[1].position.y==moveY)|| (gameState.myPlayer.worms[2].position.x==moveX && gameState.myPlayer.worms[2].position.y==moveY)){
                 return true;
             }
         }

@@ -39,10 +39,15 @@ public class Bot {
         if (enemyWorm != null) {
             Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
 
-            if(enemyWorm.id == opponent.currentWormId && enemyWorm.roundsUntilUnfrozen==0){
+            Cell cell = gameState.map[currentWorm.position.y][currentWorm.position.y];
+
+            if (cell.type == CellType.LAVA) {
+                return EscapeLavaStrategy();
+            } else if (enemyWorm.id == opponent.currentWormId && enemyWorm.roundsUntilUnfrozen == 0) {
                 return EscapeShootStrategy(enemyWorm);
-            } else{
-                return AttackStrategy(enemyWorm);
+            } else {
+//                return AttackStrategy(enemyWorm);
+                return EscapeShootStrategy(enemyWorm);
             }
         }
 
@@ -305,6 +310,7 @@ public class Bot {
     }
 
     private Command AttackAnotherWorm(Worm enemyWorm) {
+        System.out.println("Path blocked trying to attack another worm...");
         Utilities utilities = new Utilities();
         for(Worm anotherEnemyWorm : opponent.worms){
             if(anotherEnemyWorm.id != enemyWorm.id){
@@ -331,22 +337,24 @@ public class Bot {
         if(currentWorm.position.x==enemyWorm.position.x){
             System.out.println("Escape shoot strategy alternatif 1");
             moveX = x<33/2 ? x+1 : x-1;
+            moveY = y<33/2 ? y+1 : y-1;
             conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
 
             if(conflict){ //Jika conflict coba jalan lain terlebih dahulu
                 moveX = x<33/2 ? x-1: x+1;
+                moveY = y<33/2 ? y+1 : y-1;
                 conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
                 if(conflict){
                     moveX = x<33/2? x+1 : x-1;
-                    moveY = y<33/2 ? y+1 : y-1;
+                    moveY = y;
                     conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
                     if(conflict){
-                        moveX = x<33/2 ? x+1 : x-1;
-                        moveY = y<33/2 ? y-1 : y+1;
+                        moveX = x<33/2 ? x-1 : x+1;
+                        moveY = y;
                         conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
                         if(conflict){
-                            moveX = x < 33/2 ? x-1 : x+1;
-                            moveY = y < 33/2 ? y+1 : y-1;
+                            moveX = x < 33/2 ? x+1 : x-1;
+                            moveY = y < 33/2 ? y-1 : y+1;
                             conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
                             if(conflict){
                                 moveX = x < 33/2 ? x-1 : x+1;
@@ -364,28 +372,30 @@ public class Bot {
         } else if(currentWorm.position.y==enemyWorm.position.y){
             System.out.println("Escape shoot strategy alternatif 2");
             moveY = y<33/2 ? y+1 : y-1;
+            moveX = x<33/2 ? x+1 : x-1;
             conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
 
-            if(conflict) { //Jika conflict coba jalan lain terlebih dahulu
-                moveY = y < 33 / 2 ? y-1 : y+1;
+            if(conflict){ //Jika conflict coba jalan lain terlebih dahulu
+                moveY = y<33/2 ? y-1: y+1;
+                moveX = x<33/2 ? x+1 : x-1;
                 conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
-                if (conflict) {
-                    moveY = y < 33 / 2 ? y+1 : y-1;
-                    moveX = y < 33 / 2 ? x+1 : x-1;
+                if(conflict){
+                    moveY = y<33/2? y+1 : y-1;
+                    moveX = x;
                     conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
-                    if (conflict) {
-                        moveY = y < 33 / 2 ? y+1 : y-1;
-                        moveX = x < 33 / 2 ? x-1 : x+1;
+                    if(conflict){
+                        moveY = y<33/2 ? y-1 : y+1;
+                        moveX = x;
                         conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
-                        if (conflict) {
-                            moveY = y < 33 / 2 ? y-1 : y+1;
-                            moveX = x < 33 / 2 ? x+1: x-1;
+                        if(conflict){
+                            moveY = y < 33/2 ? y+1 : y-1;
+                            moveX = x < 33/2 ? x-1 : x+1;
                             conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
-                            if (conflict) {
-                                moveY = y < 33 / 2 ? y-1 : y+1;
-                                moveX = x < 33 / 2 ? x-1 : x+1;
+                            if(conflict){
+                                moveY = y < 33/2 ? y-1 : y+1;
+                                moveX = x < 33/2 ? y-1 : y+1;
                                 conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
-                                if (conflict) {
+                                if(conflict){
                                     return AttackStrategy(enemyWorm);
                                 }
                             }
@@ -394,24 +404,37 @@ public class Bot {
                 }
             }
         } else { // currentWorm.position.x != enemyWorm.position.x && currentWorm.position.y != enemyWorm.position.y
-            System.out.println("Escape shoot strategy alternatif 3");
-            moveX = x<33/2? x+1 : x-1;
-            moveY = y<33/2 ? y+1 :y-1;
-            conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
-            if(conflict){
-                moveX = x<33/2 ? x+1 : x-1;
-                moveY = y<33/2 ? y-1 : y+1;
+            if((currentWorm.position.x > enemyWorm.position.x && currentWorm.position.y < enemyWorm.position.y) || (currentWorm.position.x < enemyWorm.position.x && currentWorm.position.y > enemyWorm.position.y)){
+                System.out.println("Escape shoot strategy alternatif 3A");
+                moveX = x<33/2? x+1 : x-1;
                 conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
                 if(conflict){
-                    moveX = x < 33/2 ? x-1 : x+1;
-                    moveY = y < 33/2 ? y+1 : y-1;
+                    moveY = y<33/2 ? y+1 : y-1;
                     conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
                     if(conflict){
-                        moveX = x < 33/2 ? x-1 : x+1;
-                        moveY = y < 33/2 ? y-1 : y+1;
+                        moveX = x<33/2 ? x+1 : x-1;
+                        moveY = x<33/2 ? y+1 : y-1;
                         conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
                         if(conflict){
-                            return AttackStrategy(enemyWorm);
+                            moveX = x<33/2 ? x-1 : x+1;
+                            moveY = x<33/2 ? y-1 : y+1;
+                        }
+                    }
+                }
+            } else{
+                System.out.println("Escape shoot strategy alternatif 3B");
+                moveX = x<33/2? x+1 : x-1;
+                conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                if(conflict){
+                    moveY = y<33/2 ? y+1 : y-1;
+                    conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                    if(conflict){
+                        moveX = x<33/2 ? x+1 : x-1;
+                        moveY = x<33/2 ? y-1 : y+1;
+                        conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
+                        if(conflict){
+                            moveX = x<33/2 ? x-1 : x+1;
+                            moveY = x<33/2 ? y+1 : y-1;
                         }
                     }
                 }
@@ -424,6 +447,7 @@ public class Bot {
     }
 
     private Command AttackStrategy(Worm enemyWorm) {
+        System.out.println("Attack strategy executed!");
         // First check can use bomb or not
         Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
         if (currentWorm.id == 2) {
@@ -457,12 +481,13 @@ public class Bot {
     }
 
     private Command BananaBombStrategy(Worm enemyWorm, Direction direction){
+        System.out.println("Banana Bomb Strategy executed!");
         for(int i=0;i<5;i++){
             if(i<3){
                 for(int j=2-i;j<3+i;j++){
                     int x = enemyWorm.position.x - (2-i);
                     int y = enemyWorm.position.y - (2-j);
-                    if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[1].position.x && y==gameState.myPlayer.worms[1].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
+                    if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
                         System.out.println("ANJING");
                         return new ShootCommand(direction);
                     }
@@ -482,6 +507,7 @@ public class Bot {
     }
 
     private Command SnowballStrategy(Worm enemyWorm, Direction direction){
+        System.out.println("Snowball Strategy Executed!");
         for(Worm w : gameState.myPlayer.worms){
             int x = w.position.x;
             int y = w.position.y;
