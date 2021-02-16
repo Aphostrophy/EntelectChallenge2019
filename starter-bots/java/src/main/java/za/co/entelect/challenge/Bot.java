@@ -245,7 +245,7 @@ public class Bot {
         return new MoveCommand(moveX,moveY);
     }
 
-    private Command EscapeEnemyStrategy(Worm enemyWorm) {
+    private Command avoidFriendlyFire(Worm enemyWorm) {
         int x = currentWorm.position.x;
         int y = currentWorm.position.y;
         int enemyX = enemyWorm.position.x;
@@ -365,7 +365,7 @@ public class Bot {
             }
         }
 
-        return canShoot ? new ShootCommand(direction) : EscapeEnemyStrategy(enemyWorm);
+        return canShoot ? new ShootCommand(direction) : avoidFriendlyFire(enemyWorm);
     }
 
     private Command BananaBombStrategy(Worm enemyWorm, Direction direction){
