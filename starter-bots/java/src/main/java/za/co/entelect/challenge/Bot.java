@@ -400,15 +400,15 @@ public class Bot {
 
     private Command EscapeLavaStrategy(Worm enemyWorm){
 
-        for(int i = x - 1; i <= x + 1; i++){
-            if(x == enemyX && i == x){
-                continue;
-            }
-
-            for(int j = y - 1; j <= y + 1; j++){
-                if(y == enemyY && j == y) {
-                    continue;
-                }
+//        for(int i = x - 1; i <= x + 1; i++){
+//            if(x == enemyX && i == x){
+//                continue;
+//            }
+//
+//            for(int j = y - 1; j <= y + 1; j++){
+//                if(y == enemyY && j == y) {
+//                    continue;
+//                }
         Utilities utilities = new Utilities();
 
         int x = currentWorm.position.x;
@@ -468,15 +468,23 @@ public class Bot {
         Utilities utilities = new Utilities();
         for(Worm anotherEnemyWorm : opponent.worms){
             if(anotherEnemyWorm.id != enemyWorm.id){
-                if(utilities.gradient(currentWorm, enemyWorm) != utilities.gradient(currentWorm, anotherEnemyWorm)){
-                    Direction direction = resolveDirection(currentWorm.position, anotherEnemyWorm.position);
-                    return new ShootCommand(direction);
+                for (Worm anotherWorm : this.wormsData) {
+                    if (currentWorm.id != anotherWorm.id && anotherWorm.health > 0) {
+                        // Check gradiennya gimana
+                        if (utilities.gradient(currentWorm, anotherWorm) != utilities.gradient(currentWorm, anotherEnemyWorm)) {
+                            if(euclideanDistance(currentWorm.position.x,currentWorm.position.y,anotherWorm.position.x,anotherWorm.position.y) > 5) {
+                                Direction direction = resolveDirection(currentWorm.position, anotherEnemyWorm.position);
+                                return new ShootCommand(direction);
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        return EscapeLavaStrategy(enemyWorm);
+        return avoidFriendlyFire(enemyWorm);
     }
+
 
     private Command EscapeShootStrategy(Worm enemyWorm){
 
@@ -646,16 +654,16 @@ public class Bot {
         for (Worm anotherWorm : this.wormsData) {
             if (currentWorm.id != anotherWorm.id && anotherWorm.health > 0) {
                 // Check gradiennya gimana
-                if (utilities.gradient(currentWorm, anotherWorm) == utilities.gradient(currentWorm, enemyWorm) &&         euclideanDistance(currentWorm.position.x,currentWorm.position.y,anotherWorm.position.x,anotherWorm.position.y) < euclideanDistance(currentWorm.position.x,currentWorm.position.y,anotherWorm.position.x,anotherWorm.position.y)) {
-                    canShoot = false;
-                    break;
+                if (utilities.gradient(currentWorm, anotherWorm) == utilities.gradient(currentWorm, enemyWorm)) {
+                    if(euclideanDistance(currentWorm.position.x,currentWorm.position.y,anotherWorm.position.x,anotherWorm.position.y) <= 5) {
+                        canShoot = false;
+                        break;
+                    }
                 }
             }
         }
-        System.out.println("Shoot strategy executed!");
-        System.out.println(canShoot);
 
-        return canShoot ? new ShootCommand(direction) : avoidFriendlyFire(enemyWorm);
+        return canShoot ? new ShootCommand(direction) : AttackAnotherWorm(enemyWorm);
     }
 
     private Command BananaBombStrategy(Worm enemyWorm, Direction direction){
