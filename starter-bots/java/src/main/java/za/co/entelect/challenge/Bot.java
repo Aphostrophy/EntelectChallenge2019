@@ -100,11 +100,10 @@ public class Bot {
                 destBlock = surroundingBlocks.get(cellIdx);
             }
         } else if(currentWorm.id == 3) {
-            destBlock = follow(1);
+            destBlock = hunt(2);
             if(destBlock == null) {
-                destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
-            } else {
-                if(euclideanDistance(currentWorm.position.x, currentWorm.position.y, destBlock.x, destBlock.y) <= 3) {
+                destBlock = follow(1);
+                if(destBlock == null || euclideanDistance(currentWorm.position.x, currentWorm.position.y, destBlock.x, destBlock.y) <= 3) {
                     destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
                 }
             }
