@@ -2,8 +2,7 @@ package za.co.entelect.challenge;
 
 import za.co.entelect.challenge.command.*;
 import za.co.entelect.challenge.entities.*;
-import za.co.entelect.challenge.enums.CellType;
-import za.co.entelect.challenge.enums.Direction;
+import za.co.entelect.challenge.enums.*;
 
 import java.sql.SQLOutput;
 import java.util.*;
@@ -16,6 +15,32 @@ public class Bot {
     private Opponent opponent;
     private MyWorm currentWorm;
     private Worm[] wormsData;
+
+    private class CellDistance {
+        Cell cell;
+        int distance;
+
+        public int getDistance() {
+            return distance;
+        }
+
+        CellDistance(Cell cell, int distance){
+            this.cell = cell;
+            this.distance = distance;
+        }
+    }
+
+    private class CellTurn {
+        Cell cell;
+        int turns;
+
+        public int getTurns() {return turns;}
+
+        CellTurn(Cell cell, int turns) {
+            this.cell = cell;
+            this.turns = turns;
+        }
+    }
 
     public Bot(Random random, GameState gameState) {
         this.random = random;
@@ -57,14 +82,22 @@ public class Bot {
             }
         }
 
-
         Cell destBlock = getNearestObjective(currentWorm.position.x, currentWorm.position.y);
-
 
         if(currentWorm.id == 1) {
             destBlock = hunt(2);
             if(destBlock == null) {
                 destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
+            }
+        } else if(currentWorm.id == 2) {
+            List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
+
+            int cellIdx = utilities.getDirtID(surroundingBlocks);
+
+            if(cellIdx == -1) {
+                destBlock = getNearestObjective(currentWorm.position.x, currentWorm.position.y);
+            } else {
+                destBlock = surroundingBlocks.get(cellIdx);
             }
         } else if(currentWorm.id == 3) {
             destBlock = follow(1);
@@ -204,6 +237,32 @@ public class Bot {
         return sortedObjectives.get(0).cell;
     }
 
+    private Cell getNearestDirt(int currPosX, int currPosY) {
+        System.out.println("Get nearest dirt");
+        List<Cell> objectives = new ArrayList<Cell>();
+
+        for(int i = 0; i < 33; i++) {
+            for(int j = 0; j < 33; j++) {
+                if(gameState.map[j][i].type == CellType.DIRT) {
+                    objectives.add(gameState.map[j][i]);
+                }
+            }
+        }
+
+        List<CellDistance> distanceList = new ArrayList<CellDistance>();
+
+        for(int i = 0; i < objectives.size(); i++) {
+            CellDistance d = new CellDistance(objectives.get(i), euclideanDistance(objectives.get(i).x, objectives.get(i).y, currPosX, currPosY));
+            distanceList.add(d);
+        }
+
+        List<CellDistance> sortedDistance = distanceList.stream()
+                .sorted(Comparator.comparing(CellDistance::getDistance))
+                .collect(Collectors.toList());
+
+        return sortedDistance.get(0).cell;
+    }
+
     private Cell getNearestEnemy(int currPosX, int currPosY) {
         List<Cell> objectives = new ArrayList<Cell>();
 
@@ -296,32 +355,6 @@ public class Bot {
             }
         }
         return null;
-    }
-
-    private class CellDistance {
-        Cell cell;
-        int distance;
-
-        public int getDistance() {
-            return distance;
-        }
-
-        CellDistance(Cell cell, int distance){
-            this.cell = cell;
-            this.distance = distance;
-        }
-    }
-
-    private class CellTurn {
-        Cell cell;
-        int turns;
-
-        public int getTurns() {return turns;}
-
-        CellTurn(Cell cell, int turns) {
-            this.cell = cell;
-            this.turns = turns;
-        }
     }
 
     private int euclideanDistance(int aX, int aY, int bX, int bY) {
