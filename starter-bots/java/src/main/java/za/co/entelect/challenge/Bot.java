@@ -59,23 +59,38 @@ public class Bot {
 
     public Command run() {
 
-        Worm enemyWorm = getFirstWormInRange();
+        Worm enemyWorm = getFirstWormInRange(currentWorm);
         Utilities utilities = new Utilities();
+        if(currentWorm.id == 2 && currentWorm.bananaBombs.count>0){
+            for(Worm worm : gameState.opponents[0].worms){
+                if(euclideanDistance(currentWorm.position.x,currentWorm.position.y,worm.position.x,worm.position.y) <=5){
+                    Direction direction = resolveDirection(currentWorm.position,worm.position);
+                    return BananaBombStrategy(worm, direction);
+                }
+            }
+        }
+
+        int lastid = currentWorm.id - 1;
+
+        if(gameState.myPlayer.previousCommand.contains("shoot") && gameState.myPlayer.remainingWormSelections > 0 && getFirstWormInRange(gameState.myPlayer.worms[lastid==0 ? 2 : lastid-1])!=null && gameState.myPlayer.worms[lastid==0 ? 2 : lastid-1].roundsUntilUnfrozen==0){
+            System.out.println(lastid==0 ? 2 : lastid-1);
+            Direction direction = resolveDirection(gameState.myPlayer.worms[lastid==0 ? 2 : lastid-1].position, enemyWorm.position);
+            return new ForceShootCommand(direction, lastid==0 ? 3 : lastid);
+        }
 
         if (enemyWorm != null) {
             System.out.println("Enemy worm is not null!");
-            Direction direction = resolveDirection(currentWorm.position, enemyWorm.position);
 
             Cell cell = gameState.map[currentWorm.position.y][currentWorm.position.x];
 
             if (cell.type == CellType.LAVA) {
                 return EscapeLavaStrategy();
-            } else if(utilities.calculateMyWormsHealth(gameState)>utilities.calculateEnemyWormsHealth(gameState) && utilities.countMyWorms(gameState) > utilities.countEnemyWorms(gameState)){
+            } else if((utilities.calculateMyWormsHealth(gameState)>utilities.calculateEnemyWormsHealth(gameState) && utilities.countMyWorms(gameState) > utilities.countEnemyWorms(gameState)) || (utilities.countMyWorms(gameState)==3)){
                 return AttackStrategy(enemyWorm);
             } else if (enemyWorm.id == opponent.currentWormId && enemyWorm.roundsUntilUnfrozen == 0) {
-                return EscapeShootStrategy();
+                return escapeShootStrategy();
             } else if(utilities.countMyWorms(gameState)==1 && utilities.calculateEnemyWormsHealth(gameState)>utilities.calculateMyWormsHealth(gameState)) {
-                return EscapeShootStrategy();
+                return escapeShootStrategy();
             } else{
                 return AttackStrategy(enemyWorm);
 //                return EscapeShootStrategy(enemyWorm);
@@ -85,29 +100,19 @@ public class Bot {
         Cell destBlock = getNearestObjective(currentWorm.position.x, currentWorm.position.y).get(0).cell;
 
         if(currentWorm.id == 1) {
-            destBlock = hunt(2);
-            if(destBlock == null) {
-                destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
+            if(getNearestPowerup(currentWorm.position.x,currentWorm.position.y) != null){
+                destBlock = getNearestPowerup(currentWorm.position.x,currentWorm.position.y).get(0).cell;
+                if(destBlock == null) {
+                    destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
+                }
             }
         } else if(currentWorm.id == 2) {
             List<Cell> surroundingBlocks = getSurroundingCells(currentWorm.position.x, currentWorm.position.y);
-
-//            int cellIdx = utilities.getDirtID(surroundingBlocks);
-
             destBlock = hunt(2);
-
-//            if(cellIdx == -1) {
-//                destBlock = getNearestObjective(currentWorm.position.x, currentWorm.position.y).get(0).cell;
-//            } else {
-//                destBlock = surroundingBlocks.get(cellIdx);
-//            }
             if(destBlock==null){
                 destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
             }
         } else if(currentWorm.id == 3) {
-//            destBlock = follow(1);
-//            if(destBlock == null) {
-//                destBlock = hunt(2);
                 if(destBlock == null || euclideanDistance(currentWorm.position.x, currentWorm.position.y, destBlock.x, destBlock.y) <= 3) {
                     destBlock = getNearestEnemy(currentWorm.position.x, currentWorm.position.y);
                 }
@@ -116,7 +121,7 @@ public class Bot {
         return moveToObjective(currentWorm.position.x, currentWorm.position.y, destBlock);
     }
 
-    private Worm getFirstWormInRange() {
+    private Worm getFirstWormInRange(MyWorm currentWorm) {
 
         Set<String> cells = constructFireDirectionLines(currentWorm.weapon.range)
                 .stream()
@@ -321,9 +326,11 @@ public class Bot {
         List<Cell> surroundingBlocks = getSurroundingCells(initialX, initialY);
         List<CellDistance> chosenBlocks = getNearestPath(surroundingBlocks, destination.x, destination.y);
 
+        Utilities utilities = new Utilities();
+
         for(CellDistance blocks : chosenBlocks){
             Cell chosenBlock = blocks.cell;
-            if (chosenBlock.type == CellType.AIR) {
+            if (chosenBlock.type == CellType.AIR && !utilities.isOccupied(gameState,chosenBlock.x,chosenBlock.y)) {
                 return new MoveCommand(chosenBlock.x, chosenBlock.y);
             } else if (chosenBlock.type == CellType.DIRT) {
                 return new DigCommand(chosenBlock.x, chosenBlock.y);
@@ -333,7 +340,7 @@ public class Bot {
         }
 
         System.out.println("Do nothing command");
-        return new DoNothingCommand();
+        return escapeShootStrategy();
     }
 
     private Cell follow(int id) {
@@ -491,20 +498,7 @@ public class Bot {
         return new MoveCommand(moveX,moveY);
     }
 
-    private Command avoidFriendlyFire(Worm enemyWorm) {
-        Utilities utilities = new Utilities();
-        int x = currentWorm.position.x;
-        int y = currentWorm.position.y;
-        int enemyX = enemyWorm.position.x;
-        int enemyY = enemyWorm.position.y;
-
-
-        return EscapeShootStrategy();
-//        return AttackAnotherWorm(enemyWorm);
-    }
-
     private Command AttackAnotherWorm(Worm enemyWorm) {
-        System.out.println("Path blocked trying to attack another worm...");
         Utilities utilities = new Utilities();
         List<List<Cell>> cellsList = constructFireDirectionLines(currentWorm.weapon.range);
         List<List<Cell>> chosenCells = new ArrayList<List<Cell>>();
@@ -514,6 +508,10 @@ public class Bot {
                 if(utilities.isOccupied(gameState, cell.x, cell.y)){
                     if(cell.occupier.id != enemyWorm.id && cell.occupier.playerId == opponent.id) {
                         chosenCells.add(cells);
+                    }
+                }
+            }
+        }
 
         for(List<Cell> cells : chosenCells){
             for(Cell cell : cells){
@@ -528,28 +526,11 @@ public class Bot {
             }
         }
 
-
-//        for(Worm anotherEnemyWorm : opponent.worms){
-//            if(anotherEnemyWorm.id != enemyWorm.id){
-//                for (Worm anotherWorm : this.wormsData) {
-//                    if (currentWorm.id != anotherWorm.id && anotherWorm.health > 0) {
-//                        // Check gradiennya gimana
-//                        if (utilities.gradient(currentWorm, anotherWorm) != utilities.gradient(currentWorm, anotherEnemyWorm)) {
-//                            if(euclideanDistance(currentWorm.position.x,currentWorm.position.y,anotherWorm.position.x,anotherWorm.position.y) > 5) {
-//                                Direction direction = resolveDirection(currentWorm.position, anotherEnemyWorm.position);
-//                                return new ShootCommand(direction);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
-        return avoidFriendlyFire(enemyWorm);
+        return EscapeLavaStrategy();
     }
 
 
-    private Command EscapeShootStrategy(){
+    private Command escapeShootStrategy(){
 
         Utilities utilities = new Utilities();
 
@@ -761,6 +742,11 @@ public class Bot {
                     int y = enemyWorm.position.y - (2-j);
                     System.out.println("X : " + x + " Y : " + y);
                     if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
+                        System.out.println(gameState.myPlayer.worms[0].position.x);
+                        System.out.println(gameState.myPlayer.worms[0].position.y);
+                        System.out.println(gameState.myPlayer.worms[2].position.x);
+                        System.out.println(gameState.myPlayer.worms[2].position.y);
+
                         return new ShootCommand(direction);
                     }
                 }
@@ -769,7 +755,7 @@ public class Bot {
                     int x = enemyWorm.position.x - (2-i);
                     int y = enemyWorm.position.y - (2-j);
                     System.out.println("X : " + x + " Y : " + y);
-                    if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[1].position.x && y==gameState.myPlayer.worms[1].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
+                    if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
                         return new ShootCommand(direction);
                     }
                 }
