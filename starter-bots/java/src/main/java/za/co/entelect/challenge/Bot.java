@@ -251,6 +251,7 @@ public class Bot {
         int enemyX = enemyWorm.position.x;
         int enemyY = enemyWorm.position.y;
 
+
         for(int i = x - 1; i <= x + 1; i++){
             if(x == enemyX && i == x){
                 continue;
