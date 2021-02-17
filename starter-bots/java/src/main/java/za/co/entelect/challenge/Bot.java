@@ -61,6 +61,14 @@ public class Bot {
 
         Worm enemyWorm = getFirstWormInRange();
         Utilities utilities = new Utilities();
+        if(currentWorm.id == 2 && currentWorm.bananaBombs.count>0){
+            for(Worm worm : gameState.opponents[0].worms){
+                if(euclideanDistance(currentWorm.position.x,currentWorm.position.y,worm.position.x,worm.position.y) <=5){
+                    Direction direction = resolveDirection(currentWorm.position,worm.position);
+                    return BananaBombStrategy(worm, direction);
+                }
+            }
+        }
 
         if (enemyWorm != null) {
             System.out.println("Enemy worm is not null!");
@@ -737,6 +745,11 @@ public class Bot {
                     int y = enemyWorm.position.y - (2-j);
                     System.out.println("X : " + x + " Y : " + y);
                     if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
+                        System.out.println(gameState.myPlayer.worms[0].position.x);
+                        System.out.println(gameState.myPlayer.worms[0].position.y);
+                        System.out.println(gameState.myPlayer.worms[2].position.x);
+                        System.out.println(gameState.myPlayer.worms[2].position.y);
+
                         return new ShootCommand(direction);
                     }
                 }
@@ -745,7 +758,7 @@ public class Bot {
                     int x = enemyWorm.position.x - (2-i);
                     int y = enemyWorm.position.y - (2-j);
                     System.out.println("X : " + x + " Y : " + y);
-                    if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[1].position.x && y==gameState.myPlayer.worms[1].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
+                    if((x==gameState.myPlayer.worms[0].position.x && y==gameState.myPlayer.worms[0].position.y) || (x==gameState.myPlayer.worms[2].position.x && y==gameState.myPlayer.worms[2].position.y)){
                         return new ShootCommand(direction);
                     }
                 }
