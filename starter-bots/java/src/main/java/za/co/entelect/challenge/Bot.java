@@ -499,21 +499,48 @@ public class Bot {
     private Command AttackAnotherWorm(Worm enemyWorm) {
         System.out.println("Path blocked trying to attack another worm...");
         Utilities utilities = new Utilities();
-        for(Worm anotherEnemyWorm : opponent.worms){
-            if(anotherEnemyWorm.id != enemyWorm.id){
-                for (Worm anotherWorm : this.wormsData) {
-                    if (currentWorm.id != anotherWorm.id && anotherWorm.health > 0) {
-                        // Check gradiennya gimana
-                        if (utilities.gradient(currentWorm, anotherWorm) != utilities.gradient(currentWorm, anotherEnemyWorm)) {
-                            if(euclideanDistance(currentWorm.position.x,currentWorm.position.y,anotherWorm.position.x,anotherWorm.position.y) > 5) {
-                                Direction direction = resolveDirection(currentWorm.position, anotherEnemyWorm.position);
-                                return new ShootCommand(direction);
-                            }
-                        }
+        List<List<Cell>> cellsList = constructFireDirectionLines(currentWorm.weapon.range);
+        List<List<Cell>> chosenCells = new ArrayList<List<Cell>>();
+
+        for(List<Cell> cells : cellsList) {
+            for(Cell cell : cells) {
+                if(utilities.isOccupied(gameState, cell.x, cell.y)){
+                    if(cell.occupier.id != enemyWorm.id && cell.occupier.playerId == opponent.id) {
+                        chosenCells.add(cells);
                     }
                 }
             }
         }
+
+        for(List<Cell> cells : chosenCells){
+            for(Cell cell : cells){
+                if(utilities.isOccupied(gameState, cell.x, cell.y)){
+                    if(cell.occupier.playerId == gameState.myPlayer.id){
+                        continue;
+                    }else{
+                        Direction direction = resolveDirection(currentWorm.position, cell.occupier.position);
+                        return new ShootCommand(direction);
+                    }
+                }
+            }
+        }
+
+
+//        for(Worm anotherEnemyWorm : opponent.worms){
+//            if(anotherEnemyWorm.id != enemyWorm.id){
+//                for (Worm anotherWorm : this.wormsData) {
+//                    if (currentWorm.id != anotherWorm.id && anotherWorm.health > 0) {
+//                        // Check gradiennya gimana
+//                        if (utilities.gradient(currentWorm, anotherWorm) != utilities.gradient(currentWorm, anotherEnemyWorm)) {
+//                            if(euclideanDistance(currentWorm.position.x,currentWorm.position.y,anotherWorm.position.x,anotherWorm.position.y) > 5) {
+//                                Direction direction = resolveDirection(currentWorm.position, anotherEnemyWorm.position);
+//                                return new ShootCommand(direction);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
         return avoidFriendlyFire(enemyWorm);
     }
@@ -684,14 +711,25 @@ public class Bot {
     private Command ShootStrategy(Direction direction,Worm enemyWorm){
         Utilities utilities = new Utilities();
         boolean canShoot = true;
-        for (Worm anotherWorm : this.wormsData) {
-            if (currentWorm.id != anotherWorm.id && anotherWorm.health > 0) {
-                // Check gradiennya gimana
-                if (utilities.gradient(currentWorm, anotherWorm) == utilities.gradient(currentWorm, enemyWorm)) {
-                    if(euclideanDistance(currentWorm.position.x,currentWorm.position.y,anotherWorm.position.x,anotherWorm.position.y) <= 5) {
-                        canShoot = false;
-                        break;
+        List<List<Cell>> cellsList = constructFireDirectionLines(currentWorm.weapon.range);
+        List<Cell> chosenCell = new ArrayList<Cell>();
+
+        for(List<Cell> cells : cellsList) {
+            for(Cell cell : cells) {
+                if(utilities.isOccupied(gameState, cell.x, cell.y)){
+                    if(cell.occupier.id == enemyWorm.id && cell.occupier.playerId == opponent.id) {
+                        chosenCell = cells;
                     }
+                }
+            }
+        }
+
+
+        for(Worm anotherWorm : this.wormsData) {
+            for(Cell cell : chosenCell) {
+                if(cell.x == anotherWorm.position.x && cell.y == anotherWorm.position.y){
+                    canShoot = false;
+                    break;
                 }
             }
         }
