@@ -65,9 +65,9 @@ public class Utilities {
         return -1;
     }
 
-    public float gradient(Worm w1, Worm w2) {
-        float deltaX = w1.position.x - w2.position.x;
-        float deltaY = w1.position.y - w2.position.y;
+    public int gradient(Worm w1, Worm w2) {
+        int deltaX = w1.position.x - w2.position.x;
+        int deltaY = w1.position.y - w2.position.y;
         return deltaY/deltaX;
     }
 
