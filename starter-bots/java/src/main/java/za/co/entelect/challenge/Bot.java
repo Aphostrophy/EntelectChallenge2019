@@ -73,8 +73,7 @@ public class Bot {
         int lastid = currentWorm.id - 1;
 
         if(gameState.myPlayer.previousCommand.contains("shoot") && gameState.myPlayer.remainingWormSelections > 0 && getFirstWormInRange(gameState.myPlayer.worms[lastid==0 ? 2 : lastid-1])!=null && gameState.myPlayer.worms[lastid==0 ? 2 : lastid-1].roundsUntilUnfrozen==0){
-            Direction direction = resolveDirection(gameState.myPlayer.worms[lastid==0 ? 2 : lastid-1].position, enemyWorm.position);
-            return new ForceShootCommand(direction, lastid==0 ? 3 : lastid);
+            return ForceShootStrategy(gameState.myPlayer.worms[lastid==0 ? 2 : lastid-1]);
         }
 
         if (enemyWorm != null) {
@@ -132,6 +131,17 @@ public class Bot {
                 if (cells.contains(enemyPosition)) {
                     return enemyWorm;
                 }
+            }
+        }
+
+        return null;
+    }
+
+    private Worm getFirstWormInRangeMarkII(MyWorm c) {
+
+        for (Worm enemyWorm : opponent.worms) {
+            if(enemyWorm.health>0 && euclideanDistance(c.position.x,c.position.y,enemyWorm.position.x,enemyWorm.position.y) <=4){
+                return enemyWorm;
             }
         }
 
@@ -395,7 +405,20 @@ public class Bot {
         return Direction.valueOf(builder.toString());
     }
 
+    private Command ForceShootStrategy(MyWorm c){
+        Worm nearestEnemyWorm = getFirstWormInRangeMarkII(c);
+        System.out.println("Force shoot strategy initiated");
+
+        if(nearestEnemyWorm!=null){
+            Direction direction = resolveDirection(c.position, nearestEnemyWorm.position);
+            return new ForceShootCommand(direction,c.id);
+        }
+        return EscapeLavaStrategy();
+    }
+
     private Command EscapeLavaStrategy(){
+
+        System.out.println("escape lava");
 
         Utilities utilities = new Utilities();
 
@@ -539,6 +562,7 @@ public class Bot {
         boolean conflict = false;
 
         if(currentWorm.position.x==enemyWorm.position.x){
+            System.out.println("Alt 1");
             moveX = x<16 ? x+1 : x-1;
             moveY = y<16 ? y+1 : y-1;
             conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
@@ -573,6 +597,7 @@ public class Bot {
             }
 
         } else if(currentWorm.position.y==enemyWorm.position.y){
+            System.out.println("Alt 2");
             moveY = y<16 ? y+1 : y-1;
             moveX = x<16 ? x+1 : x-1;
             conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
@@ -607,6 +632,7 @@ public class Bot {
             }
         } else { // currentWorm.position.x != enemyWorm.position.x && currentWorm.position.y != enemyWorm.position.y
             if((currentWorm.position.x > enemyWorm.position.x && currentWorm.position.y < enemyWorm.position.y) || (currentWorm.position.x < enemyWorm.position.x && currentWorm.position.y > enemyWorm.position.y)){
+                System.out.println("Alt 3A");
                 moveX = x<16 ? x+1 : x-1;
                 moveY = y;
                 conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
@@ -640,6 +666,7 @@ public class Bot {
                 }
 
             } else{
+                System.out.println("Alt 3B");
                 moveX = x<16 ? x+1 : x-1;
                 moveY = y;
                 conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
