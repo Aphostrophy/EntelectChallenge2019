@@ -407,7 +407,6 @@ public class Bot {
 
     private Command ForceShootStrategy(MyWorm c){
         Worm nearestEnemyWorm = getFirstWormInRangeMarkII(c);
-        System.out.println("Force shoot strategy initiated");
 
         if(nearestEnemyWorm!=null){
             Direction direction = resolveDirection(c.position, nearestEnemyWorm.position);
@@ -417,8 +416,6 @@ public class Bot {
     }
 
     private Command EscapeLavaStrategy(){
-
-        System.out.println("escape lava");
 
         Utilities utilities = new Utilities();
 
@@ -562,7 +559,6 @@ public class Bot {
         boolean conflict = false;
 
         if(currentWorm.position.x==enemyWorm.position.x){
-            System.out.println("Alt 1");
             moveX = x<16 ? x+1 : x-1;
             moveY = y<16 ? y+1 : y-1;
             conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
@@ -597,7 +593,6 @@ public class Bot {
             }
 
         } else if(currentWorm.position.y==enemyWorm.position.y){
-            System.out.println("Alt 2");
             moveY = y<16 ? y+1 : y-1;
             moveX = x<16 ? x+1 : x-1;
             conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
@@ -632,7 +627,6 @@ public class Bot {
             }
         } else { // currentWorm.position.x != enemyWorm.position.x && currentWorm.position.y != enemyWorm.position.y
             if((currentWorm.position.x > enemyWorm.position.x && currentWorm.position.y < enemyWorm.position.y) || (currentWorm.position.x < enemyWorm.position.x && currentWorm.position.y > enemyWorm.position.y)){
-                System.out.println("Alt 3A");
                 moveX = x<16 ? x+1 : x-1;
                 moveY = y;
                 conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
@@ -666,7 +660,6 @@ public class Bot {
                 }
 
             } else{
-                System.out.println("Alt 3B");
                 moveX = x<16 ? x+1 : x-1;
                 moveY = y;
                 conflict = utilities.isPathInvalid(enemyWorm,currentWorm,opponent,moveX,moveY,gameState);
